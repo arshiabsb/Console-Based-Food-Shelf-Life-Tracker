@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Fridge Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            animation: fadeIn 0.6s ease-in;
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 20px;
+            animation: slideUp 0.6s ease-out;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        .add-item-card {
+            height: fit-content;
+        }
+
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .items-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-height: 600px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .items-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .items-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .items-list::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 10px;
+        }
+
+        .food-item {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 20px;
+            border-radius: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+            animation: slideIn 0.4s ease-out;
+        }
+
+        .food-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .food-item.expired {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            color: white;
+        }
+
+        .food-item.expiring-soon {
+            background: linear-gradient(135deg, #feca57 0%, #ff9ff3 100%);
+        }
+
+        .food-item.fresh {
+            background: linear-gradient(135deg, #48c6ef 0%, #6f86d6 100%);
+            color: white;
+        }
+
+        .item-info h3 {
+            font-size: 1.3em;
+            margin-bottom: 5px;
+        }
+
+        .item-info p {
+            opacity: 0.8;
+            font-size: 0.95em;
+        }
+
+        .item-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-delete {
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+            border: 2px solid white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-delete:hover {
+            background: white;
+            color: #ff6b6b;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-top: 5px;
+        }
+
+        .badge-expired {
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+        }
+
+        .badge-soon {
+            background: rgba(255, 255, 255, 0.5);
+            color: #333;
+        }
+
+        .badge-fresh {
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state svg {
+            width: 100px;
+            height: 100px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .stat-card h4 {
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+
+        .stat-card p {
+            opacity: 0.9;
+            font-size: 0.9em;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧊 Smart Fridge Tracker</h1>
+            <p>Never let food go to waste again!</p>
+        </div>
+
+        <div class="main-content">
+            <div class="card add-item-card">
+                <h2>➕ Add Food Item</h2>
+                <form id="addItemForm">
+                    <div class="form-group">
+                        <label>Food Name</label>
+                        <input type="text" id="foodName" placeholder="e.g., Milk, Eggs, Yogurt" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Expiry Date</label>
+                        <input type="date" id="expiryDate" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add to Fridge</button>
+                </form>
+            </div>
+
+            <div class="card">
+                <h2>🍎 My Fridge Items</h2>
+                <div class="stats" id="stats">
+                    <div class="stat-card">
+                        <h4 id="totalItems">0</h4>
+                        <p>Total Items</p>
+                    </div>
+                    <div class="stat-card">
+                        <h4 id="expiredCount">0</h4>
+                        <p>Expired</p>
+                    </div>
+                    <div class="stat-card">
+                        <h4 id="freshCount">0</h4>
+                        <p>Fresh</p>
+                    </div>
+                </div>
+                <div class="items-list" id="itemsList">
+                    <div class="empty-state">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M3 6h18M3 6v12a2 2 0 002 2h14a2 2 0 002-2V6M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2" stroke-width="2"/>
+                        </svg>
+                        <h3>Your fridge is empty!</h3>
+                        <p>Add your first item to get started</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let items = [];
+
+        // Load items from memory on startup
+        function loadItems() {
+            const stored = localStorage.getItem('fridgeItems');
+            if (stored) {
+                items = JSON.parse(stored);
+                renderItems();
+            }
+        }
+
+        // Save items to memory
+        function saveItems() {
+            localStorage.setItem('fridgeItems', JSON.stringify(items));
+        }
+
+        // Add new item
+        document.getElementById('addItemForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('foodName').value;
+            const expiryDate = document.getElementById('expiryDate').value;
+            
+            items.push({
+                id: Date.now(),
+                name: name,
+                expiryDate: expiryDate
+            });
+            
+            saveItems();
+            renderItems();
+            
+            // Reset form
+            this.reset();
+            
+            // Set min date to today
+            document.getElementById('expiryDate').min = new Date().toISOString().split('T')[0];
+        });
+
+        // Delete item
+        function deleteItem(id) {
+            items = items.filter(item => item.id !== id);
+            saveItems();
+            renderItems();
+        }
+
+        // Calculate days until expiry
+        function getDaysUntilExpiry(expiryDate) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const expiry = new Date(expiryDate);
+            expiry.setHours(0, 0, 0, 0);
+            const diff = expiry - today;
+            return Math.ceil(diff / (1000 * 60 * 60 * 24));
+        }
+
+        // Get item status
+        function getItemStatus(days) {
+            if (days < 0) return 'expired';
+            if (days <= 3) return 'expiring-soon';
+            return 'fresh';
+        }
+
+        // Render all items
+        function renderItems() {
+            const itemsList = document.getElementById('itemsList');
+            
+            if (items.length === 0) {
+                itemsList.innerHTML = `
+                    <div class="empty-state">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M3 6h18M3 6v12a2 2 0 002 2h14a2 2 0 002-2V6M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2" stroke-width="2"/>
+                        </svg>
+                        <h3>Your fridge is empty!</h3>
+                        <p>Add your first item to get started</p>
+                    </div>
+                `;
+                updateStats(0, 0, 0);
+                return;
+            }
+
+            let expiredCount = 0;
+            let freshCount = 0;
+
+            itemsList.innerHTML = items.map(item => {
+                const days = getDaysUntilExpiry(item.expiryDate);
+                const status = getItemStatus(days);
+                
+                if (status === 'expired') expiredCount++;
+                if (status === 'fresh') freshCount++;
+                
+                let statusText = '';
+                let badgeClass = '';
+                
+                if (days < 0) {
+                    statusText = `Expired ${Math.abs(days)} day${Math.abs(days) > 1 ? 's' : ''} ago`;
+                    badgeClass = 'badge-expired';
+                } else if (days === 0) {
+                    statusText = 'Expires today!';
+                    badgeClass = 'badge-soon';
+                } else if (days <= 3) {
+                    statusText = `Expires in ${days} day${days > 1 ? 's' : ''}`;
+                    badgeClass = 'badge-soon';
+                } else {
+                    statusText = `Fresh - ${days} days left`;
+                    badgeClass = 'badge-fresh';
+                }
+                
+                return `
+                    <div class="food-item ${status}">
+                        <div class="item-info">
+                            <h3>${item.name}</h3>
+                            <p>Expires: ${new Date(item.expiryDate).toLocaleDateString()}</p>
+                            <span class="status-badge ${badgeClass}">${statusText}</span>
+                        </div>
+                        <div class="item-actions">
+                            <button class="btn-delete" onclick="deleteItem(${item.id})">🗑️ Remove</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            updateStats(items.length, expiredCount, freshCount);
+        }
+
+        // Update statistics
+        function updateStats(total, expired, fresh) {
+            document.getElementById('totalItems').textContent = total;
+            document.getElementById('expiredCount').textContent = expired;
+            document.getElementById('freshCount').textContent = fresh;
+        }
+
+        // Set minimum date to today
+        document.getElementById('expiryDate').min = new Date().toISOString().split('T')[0];
+
+        // Load items on page load
+        loadItems();
+    </script>
+</body>
+</html>
